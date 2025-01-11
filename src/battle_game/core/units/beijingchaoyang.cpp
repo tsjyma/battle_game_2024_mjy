@@ -1,4 +1,4 @@
-#include "zhiyin.h"
+#include "beijingchaoyang.h"
 
 #include "battle_game/core/bullets/bullets.h"
 #include "battle_game/core/game_core.h"
@@ -12,8 +12,7 @@ uint32_t kunkun_body_model_index = 0xffffffffu;
 uint32_t kunkun_eye_model_index = 0xffffffffu;
 
 }  // namespace
-
-Kunkun::Kunkun(GameCore *game_core, uint32_t id, uint32_t player_id)
+BJCY::BJCY(GameCore *game_core, uint32_t id, uint32_t player_id)
     : Unit(game_core, id, player_id) {
   if (!~kunkun_mouth_model_index) {
     auto mgr = AssetsManager::GetInstance();
@@ -72,7 +71,7 @@ Kunkun::Kunkun(GameCore *game_core, uint32_t id, uint32_t player_id)
   }
 }
 
-void Kunkun::Render() {
+void BJCY::Render() {
   battle_game::SetTransformation(position_, rotation_);
   battle_game::SetTexture(0);
   battle_game::SetColor(game_core_->GetPlayerColor(player_id_));
@@ -82,13 +81,13 @@ void Kunkun::Render() {
   battle_game::DrawModel(kunkun_mouth_model_index);
 }
 
-void Kunkun::Update() {
-  KunkunMove(3.0f, glm::radians(180.0f));
-  Basketball_turret_Rotate();
-  Basketball_Fire();
+void BJCY::Update() {
+  BJCYMove(3.0f, glm::radians(180.0f));
+  BJCYRotate();
+  BJCYFire();
 }
 
-void Kunkun::KunkunMove(float move_speed, float rotate_angular_speed) {
+void BJCY::BJCYMove(float move_speed, float rotate_angular_speed) {
   auto player = game_core_->GetPlayer(player_id_);
   if (player) {
     auto &input_data = player->GetInputData();
@@ -120,7 +119,7 @@ void Kunkun::KunkunMove(float move_speed, float rotate_angular_speed) {
   }
 }
 
-void Kunkun::Basketball_turret_Rotate() {
+void BJCY::BJCYRotate() {
   auto player = game_core_->GetPlayer(player_id_);
   if (player) {
     auto &input_data = player->GetInputData();
@@ -133,16 +132,21 @@ void Kunkun::Basketball_turret_Rotate() {
   }
 }
 
-void Kunkun::Basketball_Fire() {
+void BJCY::BJCYFire() {
   if (fire_count_down_ == 0) {
     auto player = game_core_->GetPlayer(player_id_);
     if (player) {
       auto &input_data = player->GetInputData();
       if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT]) {
-        auto velocity = Rotate(glm::vec2{0.0f, 20.0f}, turret_rotation_);
-        GenerateBullet<bullet::CannonBall>(
-            position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
-            turret_rotation_, GetDamageScale(), velocity);
+        float velocity = 8.0f;
+        float mutiplicity = 0.0f;
+        for (int i = 1; i < 9; i++) {
+          mutiplicity += 0.5f;
+          GenerateBullet<bullet::Mysword>(
+              position_ + Rotate({0.0f, mutiplicity}, turret_rotation_),
+              1.57f - turret_rotation_, GetDamageScale(), velocity,
+              mutiplicity);
+        }
         fire_count_down_ = kTickPerSecond;  // Fire interval 1 second.
       }
     }
@@ -152,18 +156,18 @@ void Kunkun::Basketball_Fire() {
   }
 }
 
-bool Kunkun::IsHit(glm::vec2 position) const {
+bool BJCY::IsHit(glm::vec2 position) const {
   position = WorldToLocal(position);
   return position.x > -0.6f && position.x < 0.6f && position.y > -0.6f &&
          position.y < 0.6f &&
          position.x * position.x + position.y * position.y < 0.36f;
 }
 
-const char *Kunkun::UnitName() const {
-  return "Zhiyinitaimei";
+const char *BJCY::UnitName() const {
+  return "Beijingchaoyang";
 }
 
-const char *Kunkun::Author() const {
+const char *BJCY::Author() const {
   return "Jingyuan Ma";
 }
 }  // namespace battle_game::unit
